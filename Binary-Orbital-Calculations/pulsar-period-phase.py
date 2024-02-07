@@ -60,9 +60,9 @@ def plot_arc(radius, start_per, end_per):
     # plt.fill_between(arc_xs, arc_ys, color='red', alpha=0.5, hatch='//', edgecolor='red', lw=0)
 
 
-obs_times = np.loadtxt('J2054-LOFAR-Observation-Times.txt', dtype='str')
+obs_times = np.loadtxt('input/J0523-Parkes-Observation-Times.txt', dtype='str')
 
-orbital_period = 7.4666 # hours
+orbital_period = 16.5 # hours
 reference_phase = 0.5 # orbital phase at ephemeris
 ephermeris = 2456577.64636 # BJD at orbital phase 0.5
 
@@ -72,6 +72,7 @@ for i in range(len(obs_times)):
     datetime = obs_times[i][0] + ' ' + obs_times[i][1]
     bjd = date_time_to_bjd(datetime)
     phase = orbital_phase_calc(ephermeris, reference_phase, orbital_period, bjd)
+    print(datetime, phase)
     phases.append(phase)
 
 
@@ -126,12 +127,34 @@ for i in range(len(phases)//2):
         plt.scatter(time[mask], sine_wave[mask], color = 'k', lw = 1, zorder = 3, s = 10)
         count += len(sine_wave[mask])
 
-plt.annotate('Coverage: ' + str(round(1 - (count/len(sine_wave)), 2)) + ' $\%$', xy=(0.75, 0.90), xycoords='axes fraction', fontsize=14)
+plt.annotate('Coverage: ' + str(round((count/len(sine_wave)), 2)) + ' $\%$', xy=(0.75, 0.90), xycoords='axes fraction', fontsize=14)
 
 plt.plot(time, sine_wave, color = 'red', lw = 3, label = 'Orbit Covered')
 plt.xlabel('Orbital Period (hrs)')
 plt.ylabel('Orbital Phase') 
 plt.legend(fontsize = 14)
 
-# %%
+#%%
 
+for i in range(len(phases)//2):
+    if phases[i*2] > phases[i*2+1]:
+        phases[i*2+1] += 1 
+    else: 
+        pass 
+
+
+# Create a Gantt chart
+fig, ax = plt.subplots(figsize=(10, 5))
+
+labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
+for i in range(len(phases)//2):
+    ax.barh(labels[i], phases[i*2+1] - phases[i*2], left=phases[i*2], label=f"Phase {phases[i]}")
+
+# # Set labels and title
+ax.set_xlabel("Phase $(\phi)$")
+ax.set_ylabel("Observation Run")
+# ax.set_xlim(0, 1.6)
+
+# Display the Gantt chart
+plt.show()
