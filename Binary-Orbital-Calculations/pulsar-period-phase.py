@@ -8,9 +8,9 @@ from numpy import sin, cos, pi, linspace
 import pandas as pd
 import matplotlib.pyplot as plt
 from math import cos, sin, hypot
-# import scienceplots 
-# plt.style.use(['science'])
-import smplotlib
+import scienceplots 
+plt.style.use(['science'])
+# import smplotlib
 
 def bjd_to_date_time(bjd):
     # BJD is usually given in TDB (Barycentric Dynamical Time)
@@ -110,7 +110,7 @@ plt.show()
 
 # --- Sine Wave Phase Variation --- 
 
-plt.figure(figsize = (10, 10), dpi = 200)
+plt.figure(figsize = (6, 6), dpi = 200)
 
 time = np.linspace(0, orbital_period, 1000)
 sine_wave = np.sin(2*pi*time/orbital_period + reference_phase)
@@ -127,12 +127,15 @@ for i in range(len(phases)//2):
         plt.scatter(time[mask], sine_wave[mask], color = 'k', lw = 1, zorder = 3, s = 10)
         count += len(sine_wave[mask])
 
-plt.annotate('Coverage: ' + str(round((count/len(sine_wave)), 2)) + ' $\%$', xy=(0.75, 0.90), xycoords='axes fraction', fontsize=14)
+plt.annotate('Coverage: ' + str(round((count/len(sine_wave)), 2)) + '$\%$', xy=(0.63, 0.87), xycoords='axes fraction', fontsize=12)
 
-plt.plot(time, sine_wave, color = 'red', lw = 3, label = 'Orbit Covered')
-plt.xlabel('Orbital Period (hrs)')
+
+plt.plot(time, sine_wave, color = '#0569b9', lw = 5, label = 'Orbit Covered')
+plt.xlabel('Orbital Period [hrs]')
 plt.ylabel('Orbital Phase') 
-plt.legend(fontsize = 14)
+plt.legend(fontsize = 12)
+plt.savefig('output/sine-wave-coverage.png', bbox_inches='tight'); plt.show()
+
 
 #%%
 

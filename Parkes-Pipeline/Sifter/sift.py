@@ -12,7 +12,7 @@ import glob
 import re
 import pandas as pd
 
-file_list = glob.glob('sift*.txt')
+file_list = glob.glob('cands*.txt')
 
 cand_num = []; file_names = []
 cand_dms = []; cand_snrs = []; cand_sigmas = []
@@ -54,16 +54,15 @@ for file in file_list:
         print('Number of candidates pre-filter:', len(dataframe))
 
         # filtering the dataframe
-        dataframe = dataframe[dataframe['Sigma'] > 8]
+        dataframe = dataframe[dataframe['Sigma'] > 7]
         dataframe = dataframe.sort_values(by='Sigma', ascending=False)
     
         print('Number of candidates:', len(dataframe))
-        dataframe.to_csv('%s.csv' % file.split('.')[0], index=False)
+        dataframe.to_csv('csv_output/%s.csv' % file.split('.')[0], index=False)
 
         # generate prepfold commands to .txt file
-        with open("%s_commands.txt"  % file.split('.')[0], "w") as file:
+        with open("command_output/%s_commands.txt"  % file.split('.')[0], "w") as file:
             # generate prepfold commands to .txt file
             for i in range(len(dataframe)):
-                command = f'prepfold -nsub 3328 -p {dataframe.iloc[i]["P(ms)"]/1000} -dm {dataframe.iloc[i]["DM"]} {dataframe.iloc[i]["file"].split("_prepsubband")[0]}.sf\n'
+                command = f'prepfold -nsub 3328 -p {dataframe.iloc[i]["P(ms)"]/1000} -dm {dataframe.iloc[i]["DM"]} -mask mask/{dataframe.iloc[i]["file"].split("_prepsubband")[0]}_t1_rfifind.mask {dataframe.iloc[i]["file"].split("_prepsubband")[0]}.sf\n'
                 file.write(command)
-
