@@ -6,7 +6,7 @@ Date: 12/01/2024
 #%%
 import numpy as np 
 import matplotlib.pyplot as plt
-import scienceplots; plt.style.use(['science','ieee'])
+import scienceplots; plt.style.use(['science','ieee']); ibm_cols = ['#6490ff', '#795ef0', '#dc5880', '#fe6100', '#ffae00']
 import pandas as pd
 from psrqpy import QueryATNF
 from astropy.table import Table
@@ -41,12 +41,12 @@ plt.figure(figsize=(6,4)) # Set the figure size
 plt.xlim(0.001, 20)
 plt.ylim(10**(-22), 10**(-9))
 
-plt.scatter(BW_table['P0'], BW_table['P1'], s=4, c='dodgerblue', marker='D', label='Black Widows', zorder = 2, edgecolors='k', linewidth=0.5) 
-plt.scatter(RB_table['P0'], RB_table['P1'], s=4, c='violet', marker='s', label='Redbacks', zorder = 3, edgecolors='k', linewidth=0.5) 
-plt.scatter(MSP_table['P0'], MSP_table['P1'], s=2, c='salmon', marker='o', label='Single MSPs', zorder = 1, alpha = 0.5) 
+plt.scatter(BW_table['P0'], BW_table['P1'], s=4, c='blue', marker='D', label='Black Widows', zorder = 2, edgecolors='k', linewidth=0.5) 
+plt.scatter(RB_table['P0'], RB_table['P1'], s=4, c='red', marker='s', label='Redbacks', zorder = 3, edgecolors='k', linewidth=0.5) 
+plt.scatter(MSP_table['P0'], MSP_table['P1'], s=2, c='green', marker='o', label='Single MSPs', zorder = 1, alpha = 0.5) 
 
 plt.scatter(total_period, total_p1, s=1, c='grey', marker='o', label='ATNF Pulsars', zorder = 0, alpha=0.5) # Plot the total period derivative against the total period
-plt.scatter(0.0333924, 4.21*10**(-13), s=10, c='k', marker='*', label='Crab', zorder = 4)
+plt.scatter(0.0333924, 4.21*10**(-13), s=10, c=ibm_cols[1], marker='*', label='Crab', zorder = 4)
 
 # --- Adding Extras --- 
 
