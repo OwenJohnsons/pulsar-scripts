@@ -1,0 +1,82 @@
+Optus | 758.0 | 768.0
+Telstra | 768.0 | 788.0
+Vodafone | 870.0 | 875.0
+Telstra | 875.0 | 890.0
+Agricultural 920 MHz RFI | 915.0 | 928.0
+Optus | 943.4 | 951.8
+Vodafone | 953.7 | 958.7
+Aliased signal | 1081.7 | 1086.7
+Aliased signal | 1720.0 | 1736.2
+Telstra | 1805.0 | 1825.0
+Optus | 1845.0 | 1865.0
+Aliased signal | 1973.7 | 1991.0
+Vodafone | 2110.0 | 2120.0
+Optus | 2140.0 | 2145.0
+Optus | 2145.0 | 2150.0
+Vodafone | 2164.9 | 2170.1
+NBN | 2302.1 | 2321.9
+NBN | 2322.1 | 2341.9
+NBN | 2342.1 | 2361.9
+NBN | 2362.1 | 2381.9
+NBN alias | 2487.0 | 2496.0
+Optus | 2670.0 | 2690.0
+NBN | 3445.1 | 3464.9
+NBN | 3550.1 | 3569.9
+NSW Police Force | 804.4 | 804.6
+Telstra - not always on | 2150.0 | 2155.0
+Radio broadcast Parkes | 847.6 | 848.0
+NSW Police Force | 849.4 | 849.6
+Radio broadcast Mount Coonambro | 848.5 | 848.7
+Parkes: Station open to official correspondence exclusively | 2125.0 | 2130.0
+digitizer related signal | 1023.0 | 1025.0
+digitizer related signal | 1919.9 | 1920.1
+digitizer related signal | 3071.9 | 3072.1
+unexplained | 825.0 | 825.0
+unexplained | 1225.0 | 1230.0
+unexplained | 1399.9 | 1400.2
+unexplained | 1498.0 | 1499.0
+unexplained | 1499.8 | 1500.2
+unexplained | 1880.0 | 1904.0
+unexplained | 2032.0 | 2033.0
+unexplained | 2063.0 | 2064.0
+unexplained | 2077.0 | 2078.0
+unexplained | 2079.0 | 2080.0
+unexplained | 2093.0 | 2094.0
+unexplained | 2160.0 | 2161.0
+unexplained | 2191.0 | 2192.0
+unexplained | 2205.0 | 2206.0
+unexplained | 2207.0 | 2208.0
+unexplained | 2221.0 | 2222.0
+unexplained | 2226.3 | 2226.7
+Iridium | 1618.0 | 1626.5
+4G Optus | 703.0 | 713.0
+Alias | 704.5 | 708.0
+ | 713.0 | 733.0
+Vodafone 4G | 825.1 | 829.9
+Telstra 3G | 830.0 | 845.0
+ | 847.6 | 848.0
+Optus 3G | 898.4 | 906.4
+Vodafone 3G | 906.8 | 915.0
+Alias | 953.0 | 960.1
+4G Telstra | 1710.0 | 1725.0
+4G Optus | 1745.0 | 1755.0
+4G Optus | 2550.0 | 2570.0
+Parkes ground response | 1017.0 | 1019.0
+Parkes ground response | 1029.0 | 1031.0
+Unknown DME signal | 1026.8 | 1027.2
+Unknown DME signal | 1027.8 | 1028.2
+Unknown DME signal | 1032.8 | 1033.2
+Strong, unknown DME signal | 1040.8 | 1041.2
+Sydney DME | 1061.8 | 1062.2
+Richmond DME | 1067.8 | 1068.2
+Wagga Wagga DME | 1071.8 | 1072.2
+Unknown DME | 1079.2 | 1080.2
+Parkes DME | 1080.8 | 1081.2
+Sydney RW07 DME | 1081.8 | 1082.2
+Unknown DME | 1103.8 | 1104.2
+Unknown DME | 1102.8 | 1103.2
+Wagga Wagga DME | 1120.8 | 1121.2
+Nowra DME | 1134.8 | 1135.2
+Canberra DME | 1137.6 | 1138.4
+Likely DME | 1149.8 | 1150.2
+Likely DME | 1150.8 | 1151.2
