@@ -1,3 +1,10 @@
+'''
+Code Purpose: Select Galactic NH for a given RA and Dec
+Author: Joe Fisher and Owen A. Johnson 
+Date: 2024-09-07
+Usage: python column_density_calculator.py <ra> <dec>
+'''
+
 import pandas as pd 
 import argparse
 
