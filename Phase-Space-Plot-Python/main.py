@@ -8,6 +8,38 @@ import pandas as pd
 
 plt.style.use('science')
 
+def calculate_luminosity_and_nuW(frequency, pulse_width, SEFD, distance_kpc, sigma_threshold):
+    """
+    Calculate the luminosity (Jy kpc^2) and nu W (GHz s).
+
+    Parameters:
+    - frequency (Hz): The frequency (or bandwidth) in Hz.
+    - pulse_width (s): The pulse width in seconds.
+    - SEFD (Jy): System Equivalent Flux Density in Jy.
+    - distance_kpc (kpc): The distance to the source in kiloparsecs.
+    - sigma_threshold (float): The threshold for the signal-to-noise ratio.
+
+    Returns:
+    - luminosity (Jy kpc^2): The spectral luminosity at the given distance.
+    - nuW (GHz s): The product of frequency (in GHz) and pulse width.
+    """
+    
+    # Convert frequency to GHz
+    frequency_ghz = frequency * 1e-9
+    
+    # Calculate nu W (in GHz s)
+    nu_W = frequency_ghz * pulse_width
+    
+    # Calculate flux density (assumed to be SEFD in this context)
+    flux_density = SEFD / np.sqrt(frequency * pulse_width)
+    flux_density = flux_density * sigma_threshold
+
+    # Calculate luminosity
+    luminosity = 4 * np.pi * (distance_kpc ** 2) * flux_density
+    
+    return luminosity, nu_W
+
+
 def plot_phase_space(args):
     # Set up the plot
     fig, ax1 = plt.subplots(figsize=(8, 6), dpi=200)
@@ -105,34 +137,6 @@ def plot_phase_space(args):
    
     plt.show()
 
-
-def calculate_pulsar_search_sensitivity(SEFD, obs_time, bandwidth, frequency, npol=2):
-    """
-    Calculate the RMS noise level and Signal-to-Noise Ratio (S/N) for a pulsar search.
-
-    Parameters:
-    SEFD (float): System Equivalent Flux Density in Jy.
-    obs_time (float): Observation time in seconds.
-    bandwidth (float): Bandwidth in Hz.
-    frequency (float): Observing frequency in MHz.
-    npol (int): Number of polarizations (default is 2).
-
-    Returns:
-    dict: Dictionary containing 'sigma_rms' and 'S/N' for a hypothetical pulsar with a flux density of 1 mJy.
-    """
-    # Convert frequency from MHz to Hz
-    frequency_hz = frequency * 1e6
-
-    # Calculate sigma_rms
-    sigma_rms = SEFD / np.sqrt(npol * obs_time * bandwidth)
-
-    pulsar_flux_density = 1e-3  # in Jy
-
-    # Calculate Signal-to-Noise Ratio (S/N)
-    sn_ratio = pulsar_flux_density / sigma_rms
-
-    return sigma_rms, sn_ratio
-
 def main():
     # parser = argparse.ArgumentParser(description='Plot Radio Transient Phase Space')
     # parser.add_argument('-all', action='store_true', help='Plot everything')
@@ -155,4 +159,3 @@ def main():
 if __name__ == '__main__':
     main()
 # %%
-ß
