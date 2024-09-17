@@ -85,23 +85,31 @@ def plot_phase_space(args):
     # Plot data
     data_files = {
         "psrs_2": {"color": "#ef476f", "label": "Pulsars", "cols": (4, 5)},
-        # "crab_nanogiant": {"color": "red", "label": "Crab Nano-shots", "cols": (0, 1)},
-        # "crab_GRP": {"color": "purple", "label": "Crab GRPs", "cols": (5, 4)},
-        # "GRPs_vals": {"color": "cyan", "label": "GRPs", "cols": (7, 8)},
         "rrats_nohead": {"color": "#06d6a0", "label": "RRATs", "cols": (4, 5)},
-        "frbs_vals_to_plot": {"color": "#f15bb5", "label": "FRBs", "cols": (1, 0)},
-        "solar_vals": {"color": "#ffd166", "label": "Solar Bursts", "cols": (4, 5)},
-        # "SGR1935+2154": {"color": "pink", "label": "SGR 1935+2154", "cols": (2, 1)},
-        # "Gosia_flare_stars": {"color": "orange", "label": "Flare Stars", "cols": (1, 2)},
+        "frbs_vals_to_plot": {"color": "#FF885B", "label": "FRBs", "cols": (1, 0)},
+        "solar_vals": {"color": "#FF9F29", "label": "Solar Bursts", "cols": (4, 5)},
+        "AGNs": {"color": "pink", "label": "AGNs", "cols": (0, 1)},
+        "FlareStars": {"color": "#F32424", "label": "Flare Stars", "cols": (0, 1)},
+        'Novae': {"color": "#693C72", "label": "Novae", "cols": (0, 1)},
+        'GRBs': {"color": "#45CFDD", "label": "GRBs", "cols": (0, 1)},  
+        'SuperNova': {"color": "#FF06B7", "label": "Supernovae", "cols": (0, 1)},
+        'Xray': {"color": "#A0C334", "label": "X-ray Binaries", "cols": (0, 1)},
+        'RSCV': {"color": "#41B3A2", "label": "RS CVm \& Algol", "cols": (0, 1)},
+        'MCV': {"color": "#1F441E", "label": "Magnetic CVs", "cols": (0, 1)},
     }
 
     for filename, props in data_files.items():
         file_path = os.path.join('./gach_rud/', filename)
         if os.path.exists(file_path):
-            data = np.loadtxt(file_path, usecols=props["cols"])  # Adjust columns as needed
+            data = np.loadtxt(file_path, usecols=props["cols"], dtype=float)  # Adjust columns as needed
             ax1.scatter(data[:, 0], data[:, 1], label=props["label"], color=props["color"], s=5, zorder=3)
 
-    ax1.scatter(4e-3, 5e-9, s=5)
+    ax1.scatter(4e-3, 5e-9, s=5, label='Jupiter DAM')
+    ax1.scatter(0.00000001,	4000, s=5, label='Crab Nano-shots')
+
+    # GRB data 
+    # grb_data = np.loadtxt('./gach_rud/Gosia_GRB', usecols=(2, 7, 9))
+    # grb_x = grb_data[:, 0]
 
     # Plot LFT3 sensitivity curves
 
@@ -125,7 +133,7 @@ def plot_phase_space(args):
     ax1.fill_between(low_nuW0_1ms, low_luminsity0_1ms, ax1.get_ylim()[1], color='green', alpha=0.3, hatch='//', label='0.1 ms, $5\sigma$')
 
     # plot legend
-    ax1.legend(loc='lower right', fontsize=8)
+    ax1.legend(loc='lower right', fontsize=4, frameon=True)
 
     # Save plot
     if args.ps_output:
