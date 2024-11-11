@@ -1,35 +1,35 @@
-#!/bin/bash
-#SBATCH -J realfft          # Job name
-#SBATCH -o /home/ojohnson/reduc-parkes/sjobs/fft-jobs/fft-output-09.log        # Output file (%j is replaced by the job ID)
-#SBATCH -e /home/ojohnson/reduc-parkes/sjobs/fft-jobs/fft-error-09.log         # Error file (%j is replaced by the job ID)
-#SBATCH -t 7-00:00:00       # Maximum time in format hh:mm:ss
-#SBATCH -n 4        # Number of tasks (cores)
-#SBATCH --mem=100G  # Memory per node (optional)
+path=$1
 
-path="/fred/oz203/data/PX094/J0523-2529/2022OCTS10/raw/"
-cd $path  # Removed unnecessary quotes
+folders=$(ls -d $path/uwl*) 
 
-# Source psrhome.sh script
-source /fred/oz002/psrhome/scripts/psrhome.sh
+if [ -z "$path" ]; then
+    echo "Error: Path not provided or invalid"
+    exit 1
+fi
 
-# Iterate over .dat files in the specified path
-for filename in "${path}"/*DM*.dat; do 
-    if [ -f "$filename" ]; then  # Check if the file exists
-        fft_file="${filename%.dat}.fft"
-        if [ -f "$fft_file" ]; then  # Check if the fft file already exists
-            echo "Error: $fft_file already exists, skipping this file"
-            continue
-        else
-            # Check if realfft command is executable
-            if command -v realfft >/dev/null 2>&1; then
-                # Execute realfft command with the filename
-                realfft "$filename"
-            else
-                echo "Error: realfft command not found or not executable"
-                exit 1
-            fi
-        fi
-    else
-        echo "Error: $filename does not exist or is not a regular file"
-    fi
-done
+folders=$(ls -d $path/uwl* 2>/dev/null)
+if [ -z "$folders" ]; then
+    echo "Error: No matching folders found in $path"
+    exit 1
+fi
+
+echo "Number of folders: " $(echo $folders | wc -w)
+
+for folder in $folders; do 
+
+    # sbatch generation
+
+    echo "sbatch generation for folder: " $folder
+
+    # sbatch_file=$folder/realfft-generation.sbatch
+    # echo "sbatch file: " $sbatch_file
+    
+    # echo "#!/bin/bash" >> "$sbatch_script"
+    # echo "#SBATCH --job-name=realfft-generation" >> "$sbatch_script"
+    # echo "#SBATCH --output=$folder/realfft-generation.out" >> "$sbatch_script"
+    # echo "#SBATCH --error=$folder/realfft-generation.err" >> "$sbatch_script"
+    # echo "#SBATCH --time=00:30:00" >> "$sbatch_script"
+    # echo "bash ~/pulsar-scripts/Parkes-Pipeline/realfft/realfft-job.sh $folder" >> "$sbatch_script"
+
+    # sbatch "$sbatch_script"
+done 
