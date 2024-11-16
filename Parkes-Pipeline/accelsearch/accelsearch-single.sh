@@ -1,6 +1,7 @@
 #!/bin/bash
 
 file=$1
+cpu_cores=$2
 
 mjd_0_5=$(echo "scale=10; 2456577.64636 - 2400000.5" | bc)
 orb_period="16.5"
@@ -78,7 +79,7 @@ if [ -e "$infofile" ]; then
         z_val=1200
     fi
 
-    accelsearch -zmax "$z_val" -ncpus 16 "$file"
+    accelsearch -zmax "$z_val" -ncpus "$cpu_cores" "$file"
 else
     echo "Info file not found for $basename"
 fi
