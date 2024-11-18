@@ -74,6 +74,9 @@ find "$path" -name "*_red.fft" | while read -r file; do
         echo "End phase: $end_phase"
         echo "Time since ascending node (s): $t_z"
         echo "Z value: $z_val"
+        z_val=$(( z_val < 0 ? -z_val : z_val ))
+        echo "Abs(Z) value: $z_val"
+        echo "--------------------------------" 
 
         if [ $(echo "$z_val < 200" | bc) -eq 1 ]; then
             echo "NOTE: Z value is less than 200, setting to 200"
