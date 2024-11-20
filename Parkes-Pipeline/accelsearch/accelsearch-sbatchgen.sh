@@ -18,9 +18,10 @@ for folder in $path/uwl*; do
         echo "#!/bin/bash" > $1
         echo "#SBATCH --job-name=accelsearch" >> $1
         echo "#SBATCH --output=$folder/prepdata/accelsearch/accelsearch_${batch_number}.out" >> $1
+        echo "#SBATCH --output=$folder/prepdata/accelsearch/accelsearch_${batch_number}.out"
         echo "#SBATCH --error=$folder/prepdata/accelsearch/accelsearch_${batch_number}.err" >> $1
         echo "#SBATCH --time=05:30:00" >> $1
-        echo "#SBATCH --mem=1536MB" >> $1  
+        echo "#SBATCH --mem=2GB" >> $1  
         echo "#SBATCH --cpus-per-task=6" >> $1
         echo "export OMP_NUM_THREADS=6" >> $1
         echo "source /fred/oz002/psrhome/scripts/psrhome.sh" >> $1
@@ -31,7 +32,18 @@ for folder in $path/uwl*; do
 
     # Loop through files and add them to the array
     for file in $(find "$folder" -name "*_red.fft"); do
-        fft_files+=("$file")
+        accel_pattern="${file%.fft}_ACCEL_*"
+        accel_dir=$(dirname "$file")
+
+        # Check for files matching the pattern with no extensions
+        base_files=$(find "$accel_dir" -type f -name "$(basename "$accel_pattern")" ! -name "*.txtcand" ! -name "*.cand")
+
+        if [[ -n "$base_files" ]]; then
+            # If a file without extension exists, skip processing
+            # echo "Skipping $file as a no-extension ACCEL file exists."
+            continue
+        fi
+            fft_files+=("$file")
         count=$((count + 1))
 
         if [ $count -eq 20 ]; then
@@ -69,4 +81,5 @@ for folder in $path/uwl*; do
 
         sbatch $sbatch_file
     fi
+
 done
