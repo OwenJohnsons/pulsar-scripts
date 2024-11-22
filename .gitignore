@@ -6,3 +6,6 @@ sift*.txt
 /NICER Proposal/
 uwl*
 core*
+*.sbatch
+*.out
+*.err
