@@ -2,24 +2,25 @@
 
 path=$1
 
+# Define the output directory for sjobs and logs
+output_dir="/home/ojohnson/sjobs/accelsearch"
+mkdir -p "$output_dir"
+
 for folder in $path/uwl*; do 
+    folder=$(realpath "$folder")
     count=0
     batch_number=1
     fft_files=()  # Array to store FFT files in batches of 20
 
-    # Make directory for accelsearch
-    mkdir -p $folder/prepdata/accelsearch
-
     # Define the sbatch file name
-    sbatch_file=$folder/prepdata/accelsearch/accelsearch_${batch_number}.sbatch
+    sbatch_file="$output_dir/accelsearch_${batch_number}.sbatch"
 
     # Function to initialize a new sbatch file
     initialize_sbatch_file() {
         echo "#!/bin/bash" > $1
         echo "#SBATCH --job-name=accelsearch" >> $1
-        echo "#SBATCH --output=$folder/prepdata/accelsearch/accelsearch_${batch_number}.out" >> $1
-        echo "#SBATCH --output=$folder/prepdata/accelsearch/accelsearch_${batch_number}.out"
-        echo "#SBATCH --error=$folder/prepdata/accelsearch/accelsearch_${batch_number}.err" >> $1
+        echo "#SBATCH --output=$output_dir/accelsearch_${batch_number}.out" >> $1
+        echo "#SBATCH --error=$output_dir/accelsearch_${batch_number}.err" >> $1
         echo "#SBATCH --time=05:30:00" >> $1
         echo "#SBATCH --mem=2GB" >> $1  
         echo "#SBATCH --cpus-per-task=6" >> $1
@@ -32,7 +33,7 @@ for folder in $path/uwl*; do
 
     # Loop through files and add them to the array
     for file in $(find "$folder" -name "*_red.fft"); do
-        accel_pattern="${file%.fft}_ACCEL_*"
+        accel_pattern="${file%.fft}_ACCEL*"
         accel_dir=$(dirname "$file")
 
         # Check for files matching the pattern with no extensions
@@ -40,10 +41,9 @@ for folder in $path/uwl*; do
 
         if [[ -n "$base_files" ]]; then
             # If a file without extension exists, skip processing
-            # echo "Skipping $file as a no-extension ACCEL file exists."
             continue
         fi
-            fft_files+=("$file")
+        fft_files+=("$file")
         count=$((count + 1))
 
         if [ $count -eq 20 ]; then
@@ -65,7 +65,7 @@ for folder in $path/uwl*; do
             batch_number=$((batch_number + 1))
 
             # Create a new sbatch file
-            sbatch_file=$folder/prepdata/accelsearch/accelsearch_${batch_number}.sbatch
+            sbatch_file="$output_dir/accelsearch_${batch_number}.sbatch"
             initialize_sbatch_file $sbatch_file
         fi
     done

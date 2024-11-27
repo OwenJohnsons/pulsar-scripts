@@ -12,7 +12,7 @@ fi
 
 # Iterate over .dat files in the specified path
 for filename in $(find "$path" -type f -name "*DM*.dat"); do
-    # if red is in the filename, skip
+    # If red reduction is already complete skip, .dat file. 
     if [[ "$filename" == *"_red"* ]]; then
     echo "Skipping $filename"
         continue
@@ -34,7 +34,7 @@ for filename in $(find "$path" -type f -name "*DM*.dat"); do
 
             # Define the red file and process with realfft again
             red_file="${basename}_red.fft"
-            realfft "$red_file"
+            # realfft "$red_file"
 
             # Remove the original .dat file
             rm "$filename"

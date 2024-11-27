@@ -12,7 +12,7 @@ echo > $path/masks/rfi-commands.txt
 
 echo "Finding .sf files in ${path}..."
 
-for filename in ${path}/*.sf; do
+for filename in ${path}/*/*.sf; do
     # Extract the base name of the file (without the directory path and extension)
     base_name=$(basename "$filename" .sf)
     echo "Generating rfi command for ${base_name}..."
