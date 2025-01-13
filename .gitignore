@@ -4,3 +4,11 @@ sift*.csv
 sift*.txt
 /Phase-Space-Plot-Python/gach_rud
 /NICER Proposal/
+Binary-Orbital-Calculations/.ipynb_checkpoints/z-parameter-checkpoint.ipynb
+*.csv
+Parkes-Pipeline/Sifter/hist
+Binary-Orbital-Calculations/__pycache__/accel_functions.cpython-310.pyc
+Binary-Orbital-Calculations/__pycache__/accel_functions.cpython-311.pyc
+Parkes-Pipeline/Sifter/command_output/cands-10-oct_commands.txt
+Parkes-Pipeline/Sifter/cands-10-oct.txt
+Parkes-Pipeline/Sifter/.sift-oct-09.txt.swp
