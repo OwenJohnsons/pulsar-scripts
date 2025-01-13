@@ -20,9 +20,12 @@ calculate_orbital_phase() {
 
     orb_P_day=$(awk "BEGIN {print $orbital_period / 24}") # Convert orbital period to days 
     subtract_mjd=$(echo "$mjd_observed - $mjd_0_5" | bc -l)
-    phase=$(echo "$subtract_mjd / $orb_P_day" | bc -l)
-    echo $(echo "$phase" | awk '{print $1 - int($1)}')
+    phase=$(echo "$subtract_mjd / $orb_P_day - 0.5" | bc -l) # Adjust for phase 0.5 reference
+    # Ensure the phase is wrapped between 0 and 1
+    adjusted_phase=$(echo "$phase - int($phase)" | awk '{print $1 >= 0 ? $1 : $1 + 1}')
+    echo "$adjusted_phase"
 }
+
 
 declare -A file_groups
 total_observed_time=0  # Initialize total observed time in seconds
