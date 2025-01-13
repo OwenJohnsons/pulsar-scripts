@@ -1,0 +1,17 @@
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_64
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221115_160130_16
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221114_112944_0
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_32
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_64
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_80
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221116_111800_16
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221118_111155_0
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_48
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221113_123605_0
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_96
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221115_160130_32
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221116_111800_0
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221109_114040_16
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221115_160130_48
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221116_111800_32
+/fred/oz203/data/PX094/J0523-2529/frequency_split/uwl_221115_160130_0

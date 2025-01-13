@@ -12,3 +12,8 @@ Binary-Orbital-Calculations/__pycache__/accel_functions.cpython-311.pyc
 Parkes-Pipeline/Sifter/command_output/cands-10-oct_commands.txt
 Parkes-Pipeline/Sifter/cands-10-oct.txt
 Parkes-Pipeline/Sifter/.sift-oct-09.txt.swp
+uwl*
+core*
+*.sbatch
+*.out
+*.err
