@@ -15,7 +15,8 @@ for folder in $(ls -d ${path}/uwl*/prepdata/*Hz); do
     echo "#SBATCH --mem=1G" >> "$sbatch_script"
 
     echo "source /fred/oz002/psrhome/scripts/psrhome.sh" >> "$sbatch_script"
-    echo "bash ~/pulsar-scripts/Parkes-Pipeline/singlepulse/single_pulse.sh $folder" >> "$sbatch_script"
+    echo "cd $folder" >> "$sbatch_script"
+    echo "bash ~/pulsar-scripts/Parkes-Pipeline/singlepulse/single_pulse.sh ./" >> "$sbatch_script"
 
     sbatch "$sbatch_script"
 done 
