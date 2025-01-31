@@ -14,8 +14,10 @@ def parse_coordinates(ra, dec, input_type):
         return SkyCoord(ra=float(ra) * u.deg, dec=float(dec) * u.deg)
     elif input_type == 'r':
         return SkyCoord(ra=float(ra) * u.radian, dec=float(dec) * u.radian)
+    elif input_type is 'g':
+        return SkyCoord(l=float(ra) * u.deg, b=float(dec) * u.deg, frame='galactic')
     else:
-        raise ValueError("Invalid input type. Use '-s' for sexagesimal, '-d' for degrees, or '-r' for radians.")
+        raise ValueError("Invalid input type. Use '-s' for sexagesimal, '-g' for galactic, '-d' for degrees, or '-r' for radians.")
 
 def main():
     # Argument parsing
@@ -24,6 +26,7 @@ def main():
     parser.add_argument('-d', action='store_const', dest='input_type', const='d', help='Input in degrees')
     parser.add_argument('-r', action='store_const', dest='input_type', const='r', help='Input in radians')
     parser.add_argument('-s', action='store_const', dest='input_type', const='s', help='Input in sexagesimal (hh:mm:ss, dd:mm:ss)')
+    parser.add_argument('-g', action='store_const', dest='input_type', const='g', help='Input in galactic coordinates')
     parser.add_argument('ra', nargs='?', type=str, help='Right Ascension')
     parser.add_argument('dec', nargs='?', type=str, help='Declination')
     
@@ -43,6 +46,7 @@ def main():
     print(f"Sexagesimal:   {c.ra.to_string(unit=u.hourangle, sep=':', precision=4)}, {c.dec.to_string(unit=u.deg, sep=':',  precision=4)}")
     print(f"Degrees:       {c.ra.deg:.6f}°, {c.dec.deg:.6f}°")
     print(f"Radians:       {c.ra.radian:.6f}, {c.dec.radian:.6f} rad")
+    print(f"Galactic:      {c.galactic.to_string()}")
 
 if __name__ == '__main__':
     main()
