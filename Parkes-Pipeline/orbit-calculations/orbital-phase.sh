@@ -8,9 +8,9 @@ echo 'Number of files found:'  $(echo "$file_paths" | wc -l)
 
 # Convert BJD ephemeris (at 0.5) to MJD
 mjd_0_5=$(echo "2456577.64636 - 2400000.5" | bc)
-orb_period="16.5"
-echo "--- Phases Covered ---" 
-echo "Pattern Start_Phase End_Phase" > phases.txt
+orb_period="16.51512"
+
+echo "MJD | Date | Length (hrs) | Phases" > phases.txt
 
 # Function to calculate orbital phase
 calculate_orbital_phase() {
@@ -21,14 +21,16 @@ calculate_orbital_phase() {
     orb_P_day=$(awk "BEGIN {print $orbital_period / 24}") # Convert orbital period to days 
     subtract_mjd=$(echo "$mjd_observed - $mjd_0_5" | bc -l)
     phase=$(echo "$subtract_mjd / $orb_P_day - 0.5" | bc -l) # Adjust for phase 0.5 reference
+
     # Ensure the phase is wrapped between 0 and 1
-    adjusted_phase=$(echo "$phase - int($phase)" | awk '{print $1 >= 0 ? $1 : $1 + 1}')
+    adjusted_phase=$(awk "BEGIN {print sprintf(\"%.2g\", ($phase % 1 + 1) % 1)}")
+
     echo "$adjusted_phase"
 }
 
-
 declare -A file_groups
 total_observed_time=0  # Initialize total observed time in seconds
+declare -a observations  # Store observations for sorting
 
 # Group files by their patterns
 for file_path in $file_paths; do
@@ -38,11 +40,15 @@ for file_path in $file_paths; do
     fi
 done
 
+# Print Header
+printf "%-10s | %-16s | %-12s | %-12s\n" "MJD" "Date" "Length (hrs)" "Phases"
+echo "---------------------------------------------------------------"
+
 # Loop through each pattern and calculate orbital phases and observation times
 for pattern in "${!file_groups[@]}"; do
     sum_length=0  # Initialize sum to 0 for each file group
-    observation_times=()  # Initialize array to store observation times
     first_date=""  # Initialize variable to store the first date
+    first_mjd=""   # Initialize variable for first MJD
 
     sorted_files=$(echo "${file_groups[$pattern]}" | tr ' ' '\n' | sort -V)
 
@@ -55,22 +61,14 @@ for pattern in "${!file_groups[@]}"; do
         mjd_time=$(echo "$paz_command" | awk '{print $5}')
         mjd="${mjd_day}.${mjd_time}"
 
-
-        # If this is the first file, store its date
+        # If this is the first file, store its date and MJD
         if [ -z "$first_date" ]; then
             first_date="$date"
+            first_mjd="$mjd"
         fi
         
         # Add the current file's length to the total sum for this group
         sum_length=$(echo "$sum_length + $length" | bc)
-
-        # Convert the current date to MJD
-        unix_time=$(date -d "$date" +%s)
-        current_mjd=$(echo "$unix_time / 86400 + 40587" | bc -l)
-        
-        # Store the observation time in HH:MM:SS format
-        observation_time=$(date -d "$date" +"%H:%M:%S")
-        observation_times+=("$observation_time")
     done
 
     # Add the total observation length for this group to the overall total
@@ -84,13 +82,30 @@ for pattern in "${!file_groups[@]}"; do
         start_phase=$(calculate_orbital_phase "$mjd" "$mjd_0_5" "$orb_period")
         final_phase=$(calculate_orbital_phase "$final_mjd" "$mjd_0_5" "$orb_period")
 
-        echo "$start_phase -- $final_phase"
-        echo "$pattern $start_phase $final_phase" >> phases.txt
+        # Convert length to hours with 2 sig figs
+        length_hours=$(awk "BEGIN {print sprintf(\"%.2g\", $sum_length / 3600)}")
 
-        
+        # Store observations for sorting
+        observations+=("$first_mjd $first_date $length_hours $start_phase -- $final_phase")
     fi
 done
 
+# Sort by MJD
+IFS=$'\n' sorted_observations=($(sort -n <<<"${observations[*]}"))
+unset IFS
+
+# Print sorted results
+for obs in "${sorted_observations[@]}"; do
+    mjd=$(echo "$obs" | awk '{print $1}')
+    date=$(echo "$obs" | awk '{print $2}')
+    length=$(echo "$obs" | awk '{print $3}')
+    phases=$(echo "$obs" | awk '{print $4, $5, $6}')
+
+    printf "%-10s | %-16s | %-12s | %-12s\n" "$mjd" "$date" "$length" "$phases"
+    echo "$mjd | $date | $length | $phases" >> phases.txt
+done
+
 # Convert total observed time from seconds to hours
-total_observed_time_hours=$(echo "$total_observed_time / 3600" | bc -l)
-echo "Total Observed Time: $total_observed_time_hours hours"
+rounded_total_time=$(awk "BEGIN {print sprintf(\"%.2g\", $total_observed_time / 3600)}")
+echo "---------------------------------------------------------------"
+echo "Total Observed Time: $rounded_total_time hours"
