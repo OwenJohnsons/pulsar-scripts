@@ -10,8 +10,8 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-# import scienceplots 
-# plt.style.use('science')
+import scienceplots 
+plt.style.use('science')
 
 def fetch_args(): 
     '''
@@ -56,7 +56,7 @@ def check_overmasking(t_obs, tsamp, dm, sig, time, dm_trials=1000, width_trials=
     print(f"Total statistical trials: {n_trials:.2e}")
 
     # SNR bins to analyze
-    snr_bins = [(6.0, 6.5), (6.5, 7.0), (7.0, 7.5)]
+    snr_bins = [(6.0, 6.5), (6.5, 7.0), (7.0, 7.5), (7.5, 8.0)]
     
     for snr_min, snr_max in snr_bins:
         expected_count = expected_pulses(n_trials, snr_min, snr_max)
@@ -68,18 +68,35 @@ def check_overmasking(t_obs, tsamp, dm, sig, time, dm_trials=1000, width_trials=
             print(f"⚠️ WARNING: Possible overmasking in {snr_min} - {snr_max} bin!")
 
     return
+
+def marker_scaling(sig, threshold=10.0):
+    """
+    Scales the marker size based on S/N. Mimicing what is done by PRESTO in the same plot. 
+    """
+    min_size = 20; max_size = 1000 
+        
+    log_base = 30.0  # Higher values give a stronger effect
+    marker_sizes = min_size + log_base * np.log1p(sig - threshold)
+    
+    return marker_sizes
+
+
     
     
 def main():
     arguments = fetch_args()
      
     sp_files = glob.glob(os.path.join(arguments.input, '*.singlepulse'))
-    print('Found {} singlepulse files'.format(len(sp_files)))
     
     # grab the header info from up a directory
     subband_name = os.path.basename(os.path.normpath(arguments.input))
     header = glob.glob(os.path.dirname(os.path.join(arguments.input)) + '/*%s.hdrinfo' % subband_name)[0]
     date, tobs, nchan, tsamp = np.loadtxt(header, usecols=(0, 1, 2, 3), dtype=str, skiprows=2)
+    filename = np.loadtxt(header, usecols=(0), dtype=str)[0]
+    
+    print('\n-------------------')
+    print('Filename: {}'.format(filename))
+    print('Found {} singlepulse files'.format(len(sp_files)))
     
     # Concatenate the singlepulse files into a single array
     dm, sig, time, sample, dfact = [], [], [], [], []
@@ -91,6 +108,11 @@ def main():
         time = np.concatenate((time, time_))
         sample = np.concatenate((sample, sample_))
         dfact = np.concatenate((dfact, dfact_))
+        
+    # if no single pulses are found, exit
+    if len(dm) == 0:
+        print('⚠️ No single pulses found in {} for current setup'.format(filename))
+        return
     
     print('\n-------------------')
     print('Read in {} single pulses'.format(len(dm)))
@@ -109,6 +131,10 @@ def main():
         sample = sample[mask]
         dfact = dfact[mask]
         
+        if len(dm) == 0:
+            print('⚠️ No single pulses found in {} for current threshold'.format(filename))
+            return
+            
         print('\n-------------------')
         print('Masked based on S/N threshold of {}'.format(arguments.threshold))
         print('Remaining single pulses: {}'.format(len(dm)))
@@ -118,6 +144,7 @@ def main():
     # 3 square top plots, 1 bottom plot
     fig = plt.figure(figsize=(12, 8))
     gs = gridspec.GridSpec(2, 3, height_ratios=[1, 2])
+    plt.suptitle('%s | S/N$_{thres}$ = %s | $N_{pulse} =$ %s' % (filename, arguments.threshold, len(dm)), fontsize=16)
 
     # Top row (3 plots)
     ax1 = plt.subplot(gs[0, 0])
@@ -148,15 +175,18 @@ def main():
     ax3.set_ylim(sig.min(), sig.max())
 
     # Time vs. DM scatter plot spanning full bottom row
-    ax4.scatter(time, dm, s=sig * 5, edgecolor='black', facecolor='none')
+    marker_sizes = marker_scaling(sig, threshold=arguments.threshold)
+    ax4.scatter(time, dm, s=marker_sizes, edgecolor='black', facecolor='none', alpha=0.3)
     ax4.set_xlabel('Time (s)')
     ax4.set_ylabel('DM (pc cm$^{-3}$)')
-    ax4.set_xlim(time.min(), time.max())
+    ax4.set_xlim(0, float(tobs))
     ax4.set_ylim(0, dm.max())
 
     # Adjust layout and save the figure
     plt.tight_layout()
     plt.savefig('singlepulse_analysis.png')
+    output_file = os.path.join(arguments.input, f'{filename}_singlepulse_t{arguments.threshold}.png')
+    plt.savefig(output_file)
     
 
 if __name__ == '__main__':
