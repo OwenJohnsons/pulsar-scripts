@@ -7,6 +7,7 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import scienceplots 
+import subprocess
 plt.style.use(['science', 'no-latex'])
 
 def fetch_args(): 
@@ -18,6 +19,7 @@ def fetch_args():
     parser.add_argument('-t', '--threshold', type=float, help='Threshold for single pulse detection (default = 0)', required=False)
     parser.add_argument('-dm', '--dm', type=float, help='DM thresehold to plot (default = 0)', required=False)
     parser.add_argument('-pdf', '--pdf', help='Save as pdf (default = False)', required=False, action='store_true')
+    parser.add_argument('-convert', '--convert', help='Use imagik convert function for pdf (default = False)', required=False, action='store_true')
     
     return parser.parse_args()
 
@@ -141,20 +143,18 @@ def main():
     plt.tight_layout()
     output_file = os.path.join(args.input, f'{filename}_transx_t{args.threshold}_DM{args.dm}.png')
     plt.savefig(output_file)
-    
-    # Sort files by DM by decreasing order
-    dm_sort = np.argsort(dm)[::-1]
-    png = png[dm_sort]
-    
+
     # Save pngs to a single pdf
     if args.pdf:
-        from PIL import Image
-
-        pdf_file = os.path.join(args.input, f'{filename}_transx_t{args.threshold}_DM{args.dm}.pdf')
-        im_list = [Image.open(png_) for png_ in png]
-        im_list[0].save(pdf_file, "PDF", resolution=50, save_all=True, append_images=im_list[1:])
-
-        print(f'📄 Saved plots to {pdf_file}')
+        # Sort files by DM by decreasing order
+        dm_sort = np.argsort(dm)[::-1]
+        png = png[dm_sort]
+        png = [str(i) for i in png]
+        png.insert(0, output_file)
+    
+        # use convert subprocess to convert png to pdf
+        subprocess.run(['convert'] + png + [f'{filename}_transx_t{args.threshold}_DM{args.dm}.pdf'])
+        print(f'Saved {filename}_transx_t{args.threshold}_DM{args.dm}.pdf')
 
 if __name__ == "__main__":
     main()
