@@ -260,7 +260,7 @@ def main():
 
         # --- Build per-channel edges from df  ---
         # channel lower edges
-        chan_fl = np.arange(flow, ftop, df) #  don't exceed ftop
+        chan_fl = np.arange(flow, ftop, df) 
         chan_fh = np.clip(chan_fl + df, None, ftop) 
         # discard any zero-width tail channel
         valid = chan_fh > chan_fl
@@ -302,7 +302,7 @@ def main():
             plt.axhline(y=w10_mean, color='red', linestyle='-', label='W10 Mean')
             plt.axhline(y=(w10_mean + 3*w10_1sigma), color='red', linestyle='--', label='W10 + 3$\\sigma$')
 
-        # --- Plotting Scattering (already in ms; don't multiply again) ---
+        # --- Plotting Scattering ---
         plt.plot(dms, scat_ctr,   label='Scattering (150 MHz)', color='orange')
         plt.plot(dms, scat_fch1,  label='Scattering (190 MHz)', color='orange', linestyle='dotted')
         plt.plot(dms, scat_fchend,label='Scattering (110 MHz)', color='orange', linestyle='dashed')
