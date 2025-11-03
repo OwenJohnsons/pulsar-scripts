@@ -340,19 +340,17 @@ def main():
         dm_stop   = dms[stop_idx]
         delta_dm  = ddms[stop_idx]
         n_trials  = int(np.ceil((dm_stop - dm_start) / delta_dm))
-        print(f" {dm_start:18.2f} | {dm_stop:17.2f} | {delta_dm:14.4f} | {n_trials:17d}")
+        print(f" {dm_start:18.3f} | {dm_stop:17.3f} | {delta_dm:14.3f} | {n_trials:17d}")
         
-        # if last segment, fill to maxDM
+        # fill to maxDM
         if i == len(plan_idxs) - 2 and dm_stop < maxDM:
             stop_idx = len(dms) - 1
             dm_start = dm_stop
             dm_stop  = maxDM
             delta_dm = ddms[stop_idx]
             n_trials = int(np.ceil((dm_stop - dm_start) / delta_dm))
-            print(f" {dm_start:18.2f} | {dm_stop:17.2f} | {delta_dm:14.3f} | {n_trials:17d}")
+            print(f" {dm_start:18.3f} | {dm_stop:17.3f} | {delta_dm:14.3f} | {n_trials:17d}")
 
-   
- 
 
     # --- Build per-channel edges from df  ---
     # channel lower edges
