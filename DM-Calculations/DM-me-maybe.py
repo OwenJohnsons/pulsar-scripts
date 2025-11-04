@@ -381,8 +381,14 @@ def main():
 
     total_plus_scatter_s = np.sqrt(total_smear_s**2 + scat_ctr_s**2) # summating scattering
     
+    print('\n=== Smear Values ===')
+    print(" DM (pc cm^-3) | Freq Smear (ms) | BW Smear (ms) | Subband Smear (ms) | Total Smear (ms) | Scatter (%s MHz) (ms)" % int(fctr))
+    print("---------------------------------------------------------------------------------------------------------------")
+    for dm_val in np.arange(0, dms.max()+1, 25):
+        closest_DMidx = nearest_value(dm_val, dms)
+        print(f" {dms[closest_DMidx]:14.1f} | {freq_smear_s[closest_DMidx]*1e3:15.3f} | {bw_smear_s*1e3:13.3f} | {subband_smear_s*1e3:17.3f} | {total_smear_s[closest_DMidx]*1e3:15.3f} | {scat_ctr_s[closest_DMidx]*1e3:20.3f}")
 
-    if args.p: 
+    if args.p:
         plt.figure(figsize=(10, 6), dpi=100)
 
         # --- Convert for plotting (ms) ---
