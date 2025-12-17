@@ -14,7 +14,7 @@ def parse_coordinates(ra, dec, input_type):
         return SkyCoord(ra=float(ra) * u.deg, dec=float(dec) * u.deg)
     elif input_type == 'r':
         return SkyCoord(ra=float(ra) * u.radian, dec=float(dec) * u.radian)
-    elif input_type is 'g':
+    elif input_type == 'g':
         return SkyCoord(l=float(ra) * u.deg, b=float(dec) * u.deg, frame='galactic')
     else:
         raise ValueError("Invalid input type. Use '-s' for sexagesimal, '-g' for galactic, '-d' for degrees, or '-r' for radians.")
@@ -42,11 +42,17 @@ def main():
     else:
         parser.error("Either --name or (RA, Dec with -d, -r, or -h) must be provided.")
     
-    # Print coordinates in different formats
-    print(f"Sexagesimal:   {c.ra.to_string(unit=u.hourangle, sep=':', precision=4)}, {c.dec.to_string(unit=u.deg, sep=':',  precision=4)}")
-    print(f"Degrees:       {c.ra.deg:.6f}°, {c.dec.deg:.6f}°")
-    print(f"Radians:       {c.ra.radian:.6f}, {c.dec.radian:.6f} rad")
+    icrs = c.icrs
+
+    print(
+        f"Sexagesimal:   "
+        f"{icrs.ra.to_string(unit=u.hourangle, sep=':', precision=4)}, "
+        f"{icrs.dec.to_string(unit=u.deg, sep=':', precision=4)}"
+    )
+    print(f"Degrees:       {icrs.ra.deg:.6f}°, {icrs.dec.deg:.6f}°")
+    print(f"Radians:       {icrs.ra.radian:.6f}, {icrs.dec.radian:.6f} rad")
     print(f"Galactic:      {c.galactic.to_string()}")
+
 
 if __name__ == '__main__':
     main()
