@@ -6,7 +6,7 @@ Last Major Update: 2025-10-10
 
 Requirements: 
 
-Usage:
+Example Usage: python DM-me-maybe.py -f0 110 -f1 190 -dt 16.384 -df 0.2 -dmin 0 -dmax 600 -p -atnf
 
 '''
 import argparse
@@ -28,8 +28,11 @@ def get_args():
     parser.add_argument('-dmax', type=float, required=True, help='Maximum DM to consider')
     parser.add_argument('-eff', type=float, default=5.0, help='SNR efficiency factor')
     parser.add_argument('-p', action='store_true', help='Makes Plots')
+    parser.add_argument('-coherent', action='store_true', help='Use coherent dedispersion')
     parser.add_argument('-atnf', action='store_true', help='Includes ATNF benchmark lines in plots')
     parser.add_argument('-s', action='store_true', help='Save plots to file')
+    parser.add_argument('-2col', action='store_true', help='2-column plot format')
+    parser.add_argument('-dat', action='store_true', help='Data from plot .dat file')
     args = parser.parse_args()
     
     return args
@@ -379,14 +382,19 @@ def main():
     scat_fch1_s   = scattering_s(dms_scatter,  flow/1000.0)
     scat_fchend_s = scattering_s(dms_scatter,  ftop/1000.0)
 
+    if args.coherent:
+        freq_smear_s    = np.zeros_like(freq_smear_s)
+        # scat_fch1_s   = np.zeros_like(scat_fch1_s)
+        # scat_fchend_s = np.zeros_like(scat_fchend_s)
+        
     total_plus_scatter_s = np.sqrt(total_smear_s**2 + scat_ctr_s**2) # summating scattering
     
     print('\n=== Smear Values ===')
-    print(" DM (pc cm^-3) | Freq Smear (ms) | BW Smear (ms) | Subband Smear (ms) | Total Smear (ms) | Scatter (%s MHz) (ms)" % int(fctr))
+    print(" DM (pc cm^-3) | Freq Smear (ms) | BW Smear (ms) | Subband Smear (ms) | Total Smear (ms) | Scatter (%s MHz) (ms)" % int(flow))
     print("---------------------------------------------------------------------------------------------------------------")
     for dm_val in np.arange(0, dms.max()+1, 25):
         closest_DMidx = nearest_value(dm_val, dms)
-        print(f" {dms[closest_DMidx]:14.1f} | {freq_smear_s[closest_DMidx]*1e3:15.3f} | {bw_smear_s*1e3:13.3f} | {subband_smear_s*1e3:17.3f} | {total_smear_s[closest_DMidx]*1e3:15.3f} | {scat_ctr_s[closest_DMidx]*1e3:20.3f}")
+        print(f" {dms[closest_DMidx]:14.1f} | {freq_smear_s[closest_DMidx]*1e3:15.3f} | {bw_smear_s*1e3:13.3f} | {subband_smear_s*1e3:17.3f} | {total_smear_s[closest_DMidx]*1e3:15.3f} | {scat_fch1_s[closest_DMidx]*1e3:20.3f}")
 
     if args.p:
         plt.figure(figsize=(10, 6), dpi=100)
@@ -435,6 +443,15 @@ def main():
         if args.s:
             plt.savefig(f"{outname}.png", dpi=300)
         plt.show()
+        
+        if args.dat:
+            # Save data to .dat file
+            dat_filename = f"{outname}.dat"
+            with open(dat_filename, 'w') as f:
+                f.write("# DM (pc cm^-3) | Freq Smear (ms) | BW Smear (ms) | Subband Smear (ms) | Total Smear (ms) | Scatter (%s MHz) (ms)\n" % int(flow))
+                for i in range(len(dms)):
+                    f.write(f"{dms[i]:.6f} {freq_smear[i]:.6f} {bw_smear:.6f} {subband_smear:.6f} {total_smear_s[i]*1e3:.6f} {scat_fch1[i]:.6f}\n")
+            print(f"Data saved to {dat_filename}")
         
         # --- Plotting DM Trials ---
         plt.figure(figsize=(10, 6), dpi=100)
