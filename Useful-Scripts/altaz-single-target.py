@@ -55,6 +55,8 @@ parser = argparse.ArgumentParser(description='Plot elevation and sensitivity plo
 parser.add_argument('--name', type=str, help='Name of the target', required=True)
 parser.add_argument('--date', help='Date of observation in form YYYY-MM-DD HH:MM:SS', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 parser.add_argument('--sens', help="Plot sensitivity curve of observation", action='store_true')
+parser.add_argument('--sun', help="Plot Sun's path along with custom target", action='store_true')
+parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 parser.add_argument('ra', type=float, help='Right Ascension of the target in radians or degrees', nargs='?')
 parser.add_argument('dec', type=float, help='Declination of the target in radians or degrees', nargs='?')
 
@@ -112,12 +114,13 @@ else:
             if result_table is None:
                 raise ValueError('No coordinates found for %s' % trgt_name)
         
-            trgt = SkyCoord(ra=result_table['RA'], dec=result_table['DEC'], unit=(u.hourangle, u.deg))
+            trgt = SkyCoord(ra=result_table['ra'], dec=result_table['dec'], unit=(u.hourangle, u.deg))
             # convert to degrees
             ra_deg = trgt.ra.degree * u.deg
             dec_deg = trgt.dec.degree * u.deg
             
         print('Coordinates found for %s: %s, %s' % (trgt_name, ra_deg, dec_deg))
+        print("Radians:", ra_deg.to(u.rad), dec_deg.to(u.rad))
 
 
 # ------------------------------------
@@ -155,13 +158,13 @@ polaris_style = {'color': 'k', 'marker': '*'}
 # - Crab Pulsar - 
 coordinates = SkyCoord('05h34m31.93830s', '+22d00m52.1758s', frame='icrs')
 crab = FixedTarget(name='Crab', coord=coordinates)
-crab_style = {'color': 'r','marker': 'o'}
+crab_style = {'color': 'r','marker': 'o', 'alpha': 0.5}
 
 # - Sun - 
 with solar_system_ephemeris.set('builtin'):
     sun_coords = get_body('sun', observe_times, location) 
 sun = FixedTarget(name='Sun', coord=sun_coords)
-sun_style = {'color': 'y'}
+sun_style = {'color': 'y', 'alpha': 0.5}
 
 # - Custom Target - 
 if trgt_name == 'Sun':
@@ -196,6 +199,11 @@ ax3 = plt.subplot(1, 2, 2)
 
 # Plotting azimuth
 ax1.plot(observe_times.datetime, az, label='Azimuth', color='black')
+
+if args.sun:
+    sun_az = sun_coords.transform_to(AltAz(obstime=observe_times, location=location)).az.degree
+    ax1.plot(observe_times.datetime, sun_az, label='Sun Azimuth', color='y', alpha=0.5)
+
 ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=7))
 ax1.set_ylabel('Azimuth')
@@ -246,6 +254,10 @@ else:
 # Plot the altitude and vertical lines if the indices are found
 ax2.plot(observe_times.datetime, alt, label='Altitude', color='black')
 
+if args.sun:
+    sun_alt = sun_coords.transform_to(AltAz(obstime=observe_times, location=location)).alt.degree
+    ax2.plot(observe_times.datetime, sun_alt, label='Sun Altitude', color='y', alpha=0.5)
+
 # plot max altitude time 
 ax2.axvline(observe_times.datetime[max_alt_index], label=f'Max Alt at {observe_times.datetime[max_alt_index].strftime("%H:%M")}', color='blue')
 if before_max_index is not None:
@@ -288,16 +300,19 @@ plt.show()
 if args.sens: 
     import subprocess
     
-    ra_hms = coord_deg.ra.to_string(unit=u.hourangle, sep=':', precision=2)
-    dec_dms = coord_deg.dec.to_string(unit=u.degree, sep=':', precision=2)
+    ra_hms = coord_deg.ra.to_string(unit=u.hourangle, sep=':', precision=2)[0]
+    dec_dms = coord_deg.dec.to_string(unit=u.degree, sep=':', precision=2)[0]
     
-    command = command = 'python ./tsky_sefd_LOFAR_ilt.py --ra %s --dec %s --freqs 100 110 120 130 140 150 160 170 180 190' % (ra_hms, dec_dms)
+    print('Getting sensitivity for %s at %s, %s...' % (trgt_name, ra_hms, dec_dms))
+    
+    command = 'tsky_sefd_LOFAR_ilt.py --ra="%s" --dec="%s" --freqs 100 110 120 130 140 150 160 170 180 190' % (ra_hms, dec_dms)
+    if args.verbose:
+        print("Running command:", command)
     output = subprocess.check_output(command, shell=True).decode('utf-8')
     
     freq = []; conv_temp = []; raw_temp = []; diff_temp = []
     lines = output.strip().split('\n')
-    lofar_bandwidth = 3.66e6 # Hz
-    tobs_v = 2*3600 # seconds
+    lofar_bandwidth = 90e6 # Hz
     
     for line in lines[4:]:
         # Split each line by tabs
@@ -311,22 +326,120 @@ if args.sens:
         
     freq = np.array(freq); conv_temp = np.array(conv_temp); raw_temp = np.array(raw_temp); diff_temp = np.array(diff_temp)
     Aeff = np.linspace(2400, 1422, len(freq))
-    def sens_limit(snr, tsys, Aeff, bandwidth, tobs): 
-        num = snr*tsys*1380*2
-        print(num)
-        dom = (Aeff*(np.sqrt(2*tobs*bandwidth)))  
-        print(dom)
-        return num/dom
     
-    smin = sens_limit(8, conv_temp, Aeff, lofar_bandwidth, tobs_v)
     
-    print('Sensitivity Limit (mJy):', 1000*smin.min())
-    plt.figure(figsize=(6, 3), dpi = 200)
-    plt.axhline(1000*smin.min(), color='r', linestyle='--', label='Min Sensitivity (%s mJy)' % round(1000*smin.min(), 2))
-    plt.plot(freq, smin*1000, 'o-')
-    plt.xlabel('Frequency (MHz)')
-    plt.ylabel('Sensitivity Limit (mJy)')
-    plt.title('Sensitivity limit for %s' % (trgt_name), fontsize=12)
-    plt.legend()
-    plt.savefig('./elevation-plots/%s-sensitivity-plot.png' % (trgt_name), dpi=200)
+    def sens_limit_period(snr, tsys, Aeff, bandwidth, tobs, duty_cycle, npol=2, eta=1.0):
+        """
+        Returns S_min (Jy) for a periodic signal (radiometer equation).
+
+        snr: required S/N threshold
+        tsys: system temperature (K)
+        Aeff: effective collecting area (m^2)
+        bandwidth: Hz
+        tobs: s
+        duty_cycle: W/P (0<dc<1)
+        npol: number of summed pols (usually 2)
+        eta: efficiency factor (<=1), backend/quantization losses
+        """
+        dc = float(duty_cycle)
+        if not (0.0 < dc < 1.0):
+            raise ValueError(f"duty_cycle must be between 0 and 1 (got {dc})")
+
+        k_B_Jy = 1380.0  # Jy m^2 / K
+        sefd = (2.0 * k_B_Jy * tsys) / Aeff  # Jy
+
+        dc_factor = np.sqrt(dc / (1.0 - dc))
+        Smin = (snr * sefd) / (eta * np.sqrt(npol * bandwidth * tobs)) * dc_factor
+        return Smin
+
+    def sens_limit_burst(
+    snr_min,
+    tsys_K,
+    Aeff_m2,
+    bandwidth_Hz,
+    width_s,
+    npol=2,
+    eta=1.0,
+    ):
+        """
+        Minimum detectable flux density S_min for a single burst (Jy)
+        using the radiometer equation.
+
+        snr_min: detection threshold (e.g. 10)
+        tsys_K: system temperature (K)
+        Aeff_m2: effective area (m^2)
+        bandwidth_Hz: processed bandwidth (Hz)
+        width_s: effective burst width / matched-filter width (s)
+        npol: number of summed pols (usually 2)
+        eta: efficiency factor (<=1), quantization/processing losses
+        """
+        k_B_Jy = 1380.0  # Jy m^2 / K  (Boltzmann constant in these units)
+
+        # SEFD = 2 k Tsys / Aeff  (Jy)
+        sefd_Jy = (2.0 * k_B_Jy * tsys_K) / Aeff_m2
+
+        # Radiometer equation for single pulse
+        Smin_Jy = (snr_min * sefd_Jy) / (eta * np.sqrt(npol * bandwidth_Hz * width_s))
+        return Smin_Jy
+        
+    
+    
+    snr = float(input("Enter required SNR: "))
+
+    hours = float(input("Enter observation time in hours: "))
+    tobs_v = hours * 3600.0
+
+    mode = input("Enter mode (period[p]/burst[b]): ").strip().lower()
+
+    if mode == "b":
+        # For single-burst searches you need a width, not total obs time
+        width_ms = float(input("Enter burst width (ms): "))
+        width_s = width_ms * 1e-3
+
+        # NOTE: sens_limit_burst should use width_s as integration time
+        smin = sens_limit_burst(snr, conv_temp, Aeff, lofar_bandwidth, width_s)
+
+        duty_cycle = None  # so plot annotation doesn't crash
+
+    else:
+        duty_cycle = float(input("Enter duty cycle (W/P, e.g. 0.05): "))
+        smin = sens_limit_period(snr, conv_temp, Aeff, lofar_bandwidth, tobs_v, duty_cycle)
+
+    # robust min (works for scalar or array)
+    smin_min = float(np.nanmin(smin))
+    smin_min_mJy = 1000.0 * smin_min
+
+    print("Sensitivity Limit (mJy):", smin_min_mJy)
+
+    plt.figure(figsize=(6, 3), dpi=200)
+
+    # Build annotation text without referencing undefined variables
+    lines = [
+        f"SNR: {snr}",
+        f"Observation Time: {hours} hours",
+        f"Min Sensitivity: {smin_min_mJy:.2f} mJy",
+    ]
+    if mode == "b":
+        lines.insert(1, f"Burst width: {width_ms} ms")
+    else:
+        lines.insert(1, f"Duty Cycle: {duty_cycle}")
+
+    plt.text(
+        0.65, 0.85, "\n".join(lines),
+        horizontalalignment="left",
+        verticalalignment="center",
+        fontsize=8,
+        transform=plt.gca().transAxes
+    )
+
+    plt.axhline(
+        smin_min_mJy,
+        linestyle="--",
+        label=f"Min Sensitivity ({smin_min_mJy:.2f} mJy)"
+    )
+
+    plt.plot(freq, np.asarray(smin) * 1000.0, "o-")
+    plt.xlabel("Frequency (MHz)")
+    plt.ylabel("Sensitivity Limit (mJy)")
+    plt.title(f"Sensitivity limit for {trgt_name}", fontsize=12)
     plt.show()
