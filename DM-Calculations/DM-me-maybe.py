@@ -22,7 +22,7 @@ def get_args():
     parser.add_argument('-f0', type=float, required=True, help='Starting frequency in MHz')
     parser.add_argument('-f1', type=float, required=True, help='Ending frequency in MHz')
     parser.add_argument('-dt', type=float, required=True, help='Time resolution in ms')
-    parser.add_argument('-nsub', type=int, default=32, help='Number of sub-bands')
+    parser.add_argument('-nsub', type=int, default=488, help='Number of sub-bands')
     parser.add_argument('-df', type=float, required=True, help='Frequency resolution in MHz')
     parser.add_argument('-dmin', type=float, default=0.0, help='Minimum DM to consider')
     parser.add_argument('-dmax', type=float, required=True, help='Maximum DM to consider')
@@ -167,7 +167,7 @@ def scattering_s(DM, f_GHz):
     """
     DM = np.asarray(DM, dtype=float)
     log_t_us = -6.46 + 0.154*np.log10(DM) + 1.07*(np.log10(DM))**2 - 3.86*np.log10(f_GHz)
-    return (10.0**log_t_us) * 1e-6
+    return (10.0**log_t_us) * 1e-3
 
 def scattering(DM, f_GHz):
     """
@@ -445,13 +445,25 @@ def main():
         plt.show()
         
         if args.dat:
-            # Save data to .dat file
+            # Save data to .dat file (use scientific notation to avoid quantizing tiny values)
             dat_filename = f"{outname}.dat"
-            with open(dat_filename, 'w') as f:
-                f.write("# DM (pc cm^-3) | Freq Smear (ms) | BW Smear (ms) | Subband Smear (ms) | Total Smear (ms) | Scatter (%s MHz) (ms)\n" % int(flow))
+            
+            with open(dat_filename, "w") as f:
+                f.write(
+                    "# DM(pc cm^-3)  FreqSmear(ms)  BWSmear(ms)  SubbandSmear(ms)  TotalSmear(ms)  Scatter(%dMHz)(ms)\n"
+                    % int(flow)
+                )
                 for i in range(len(dms)):
-                    f.write(f"{dms[i]:.6f} {freq_smear[i]:.6f} {bw_smear:.6f} {subband_smear:.6f} {total_smear_s[i]*1e3:.6f} {scat_fch1[i]:.6f}\n")
+                    f.write(
+                        f"{dms[i]:.12e} "
+                        f"{freq_smear[i]:.12e} "
+                        f"{bw_smear:.12e} "
+                        f"{subband_smear:.12e} "
+                        f"{(total_smear_s[i]*1e3):.12e} "
+                        f"{scat_fch1[i]:.12e}\n"
+                    )
             print(f"Data saved to {dat_filename}")
+
         
         # --- Plotting DM Trials ---
         plt.figure(figsize=(10, 6), dpi=100)
