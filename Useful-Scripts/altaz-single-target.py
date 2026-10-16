@@ -12,7 +12,8 @@ import astropy.units as u
 import numpy as np
 import argparse
 import os 
-# import scienceplots; plt.style.use(['science', 'no-latex'])
+from zoneinfo import ZoneInfo
+# import scienceplots; plt.style.use(['science', 'no-latex']);
 import smplotlib
 
 from astropy.coordinates import EarthLocation, SkyCoord, solar_system_ephemeris, get_body, AltAz
@@ -53,22 +54,29 @@ def get_LST(long, time='now'):
 # ------------------------------------
 parser = argparse.ArgumentParser(description='Plot elevation and sensitivity plots for a given target')
 parser.add_argument('--name', type=str, help='Name of the target', required=True)
-parser.add_argument('--date', help='Date of observation in form YYYY-MM-DD HH:MM:SS', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+parser.add_argument('--date', help='Date of observation in form YYYY-MM-DD HH:MM:SS (default: now)', default=None)
 parser.add_argument('--sens', help="Plot sensitivity curve of observation", action='store_true')
 parser.add_argument('--sun', help="Plot Sun's path along with custom target", action='store_true')
+parser.add_argument('--moon', help="Plot Moon's path along with custom target", action='store_true')
+parser.add_argument('--duration', type=float, help='Duration of observation in hours', default=31)
+parser.add_argument('--site', type=str, help='Site of observation (default: IE613)', default='IE613')
 parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 parser.add_argument('ra', type=float, help='Right Ascension of the target in radians or degrees', nargs='?')
 parser.add_argument('dec', type=float, help='Declination of the target in radians or degrees', nargs='?')
 
 args = parser.parse_args()
 
-# --- Check if the date is in the correct format ---
-try:
-    observe_time = args.date
-    trgt_name = args.name
-    datetime.strptime(observe_time, '%Y-%m-%d %H:%M:%S')
-except ValueError:
-    raise ValueError("Incorrect date format, should be YYYY-MM-DD HH:MM:SS")
+# --- Set and validate the observation start time ---
+trgt_name = args.name
+date_was_specified = args.date is not None
+if date_was_specified:
+    try:
+        datetime.strptime(args.date, '%Y-%m-%d %H:%M:%S')
+    except ValueError as exc:
+        raise ValueError("Incorrect date format, should be YYYY-MM-DD HH:MM:SS") from exc
+    observe_time = Time(args.date)
+else:
+    observe_time = Time.now()
 
 # --- Check if ra and dec are provided ---
 if args.ra and args.dec:
@@ -127,22 +135,41 @@ else:
 #          - Set up Observer -
 # ------------------------------------
 
+# --- Site Dictionary ---
+site_dict = {
+    'IE613': {
+        'longitude': 7.9219,
+        'latitude': 53.0950,
+        'elevation': 72.0,
+        'timezone': 'Europe/Dublin',
+    },
+    'LWA': {
+        'longitude': -118.281699,
+        'latitude': 37.239870,
+        'elevation': 1200.0,
+        'timezone': 'America/Los_Angeles',
+    },
+}
+
 # Set up Observer, Target and observation time objects.
-longitude = 7.9219 * u.deg
-latitude = 53.0950 * u.deg
-elevation = 72.0 * u.m
+longitude = site_dict[args.site]['longitude'] * u.deg
+latitude = site_dict[args.site]['latitude'] * u.deg
+elevation = site_dict[args.site]['elevation'] * u.m
+site_name = args.site
+local_timezone = ZoneInfo(site_dict[args.site]['timezone'])
+
 location = EarthLocation.from_geodetic(longitude, latitude, elevation)
 print('CURRENT LST:', get_LST(longitude))
 
-observer = Observer(name='I-LOFAR',
+observer = Observer(name='%s' % site_name,
                location=location,
                pressure=0.615 * u.bar,
                relative_humidity=0.11,
                temperature=0 * u.deg_C,
-               description="LOFAR Station IE613")
+               description="Telescope: %s" % site_name)
 
-observe_time = Time(args.date); print('Observation start time:', observe_time)
-obs_window = 31; print('Observation window:', obs_window, 'hours')
+print('Observation start time:', observe_time)
+obs_window = args.duration; print('Observation window:', obs_window, 'hours')
 increment = obs_window / 1000; print('Time increment:', increment, 'minutes')  # Divide the window into 1000 increments
 observe_times = observe_time + np.linspace(0, obs_window, 1000) * u.hour
 
@@ -166,6 +193,13 @@ with solar_system_ephemeris.set('builtin'):
 sun = FixedTarget(name='Sun', coord=sun_coords)
 sun_style = {'color': 'y', 'alpha': 0.5}
 
+# - Moon - 
+if args.moon:
+    with solar_system_ephemeris.set('builtin'):
+        moon_coords = get_body('moon', observe_times, location)
+    moon = FixedTarget(name='Moon', coord=moon_coords)
+    moon_style = {'color': 'gray', 'alpha': 0.5}
+
 # - Custom Target - 
 if trgt_name == 'Sun':
     print('Sun selected, no need for custom target alt-az plotting.')
@@ -184,6 +218,8 @@ else:
 plot_sky(polaris, observer, observe_time, style_kwargs=polaris_style)
 plot_sky(crab, observer, observe_times, style_kwargs=crab_style)
 plot_sky(sun, observer, observe_times, style_kwargs=sun_style)
+if args.moon:
+    plot_sky(moon, observer, observe_times, style_kwargs=moon_style)
 if trgt_name != 'Sun':
     plot_sky(custom_target, observer, observe_times, style_kwargs=custom_style)
 plt.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
@@ -204,10 +240,14 @@ if args.sun:
     sun_az = sun_coords.transform_to(AltAz(obstime=observe_times, location=location)).az.degree
     ax1.plot(observe_times.datetime, sun_az, label='Sun Azimuth', color='y', alpha=0.5)
 
+if args.moon:
+    moon_az = moon_coords.transform_to(AltAz(obstime=observe_times, location=location)).az.degree
+    ax1.plot(observe_times.datetime, moon_az, label='Moon Azimuth', color='gray', alpha=0.5)
+
 ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=7))
 ax1.set_ylabel('Azimuth')
-ax1.legend(frameon=True)
+ax1.legend(frameon=True, fontsize=8)
 # hide xticks 
 plt.setp(ax1.get_xticklabels(), visible=False)
 ax1.grid(True)
@@ -217,6 +257,7 @@ ax1.grid(True)
 # Find where altitude is max_alt - 10 on either side
 max_alt_index = np.where(alt == np.max(alt))[0][0]
 max_alt = np.max(alt)
+time_to_peak_hours = (observe_times[max_alt_index] - observe_time).to_value(u.hour)
 
 # Check if the max altitude is greater than 30 degrees
 if max_alt > 30:
@@ -258,8 +299,22 @@ if args.sun:
     sun_alt = sun_coords.transform_to(AltAz(obstime=observe_times, location=location)).alt.degree
     ax2.plot(observe_times.datetime, sun_alt, label='Sun Altitude', color='y', alpha=0.5)
 
+if args.moon:
+    moon_alt = moon_coords.transform_to(AltAz(obstime=observe_times, location=location)).alt.degree
+    ax2.plot(observe_times.datetime, moon_alt, label='Moon Altitude', color='gray', alpha=0.5)
+
 # plot max altitude time 
 ax2.axvline(observe_times.datetime[max_alt_index], label=f'Max Alt at {observe_times.datetime[max_alt_index].strftime("%H:%M")}', color='blue')
+if not date_was_specified:
+    ax2.axvline(
+        observe_times.datetime[0],
+        color='purple',
+        linestyle=':',
+        label=(
+            f'Now ({observe_times.datetime[0].strftime("%H:%M")}); '
+            f'peak in {time_to_peak_hours:.1f} h'
+        ),
+    )
 if before_max_index is not None:
     ax2.axvline(observe_times.datetime[before_max_index], color='g', linestyle='--', label=f'Crossed 30° before max at {observe_times.datetime[before_max_index].strftime("%H:%M")}')
 if after_max_index is not None:
@@ -268,10 +323,19 @@ if after_max_index is not None:
 ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 ax2.xaxis.set_major_locator(mdates.HourLocator(interval=4))
 ax2.axhline(0, color='r', linestyle='--', label='Horizon')
-ax2.set_xlabel('Time')
+ax2.set_xlabel('UTC Time')
 ax2.set_ylabel('Altitude')
 ax2.legend(frameon=True, fontsize=8)
 ax2.grid(True)
+
+# Add the observatory's local civil time above the UTC axis.
+local_time_axis = ax2.twiny()
+local_time_axis.set_xlim(ax2.get_xlim())
+local_time_axis.xaxis.set_major_locator(mdates.HourLocator(interval=4, tz=local_timezone))
+local_time_axis.xaxis.set_major_formatter(
+    mdates.DateFormatter('%H:%M', tz=local_timezone)
+)
+local_time_axis.set_xlabel(f'Local time at {site_name}')
 
 # Displaying image
 img = mpimg.imread('sky-plot.png')
@@ -292,7 +356,7 @@ month = observe_time.datetime.strftime("%B")  # Get month in word format
 # Concatenate day, day of the month, and month in the desired format
 date_string = f"{day_name}, {month}, {day_of_month}{day_suffix}"
 
-plt.suptitle('%s observation from IE613 starting %s' % (trgt_name, date_string), fontsize=16)
+plt.suptitle('%s observation from %s starting %s' % (trgt_name, site_name, date_string), fontsize=16)
 plt.tight_layout()
 # plt.savefig('./elevation-plots/%s-elevation-plot-%s.png' % (trgt_name, (str(day_of_month) + str(month))), dpi=200)
 plt.show()
