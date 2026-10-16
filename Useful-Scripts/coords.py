@@ -49,6 +49,10 @@ def main():
         f"{icrs.ra.to_string(unit=u.hourangle, sep=':', precision=4)}, "
         f"{icrs.dec.to_string(unit=u.deg, sep=':', precision=4)}"
     )
+    print(
+        f"HRs Float:     {icrs.ra.hour:.6f}, "
+        f"{icrs.dec.deg:.6f}"
+    )
     print(f"Degrees:       {icrs.ra.deg:.6f}°, {icrs.dec.deg:.6f}°")
     print(f"Radians:       {icrs.ra.radian:.6f}, {icrs.dec.radian:.6f} rad")
     print(f"Galactic:      {c.galactic.to_string()}")
