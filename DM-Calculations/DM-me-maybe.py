@@ -22,7 +22,7 @@ def get_args():
     parser.add_argument('-f0', type=float, required=True, help='Starting frequency in MHz')
     parser.add_argument('-f1', type=float, required=True, help='Ending frequency in MHz')
     parser.add_argument('-dt', type=float, required=True, help='Time resolution in ms')
-    parser.add_argument('-nsub', type=int, default=488, help='Number of sub-bands')
+    parser.add_argument('-nsub', type=int, help='Number of sub-bands (default: bw/df)')
     parser.add_argument('-df', type=float, required=True, help='Frequency resolution in MHz')
     parser.add_argument('-dmin', type=float, default=0.0, help='Minimum DM to consider')
     parser.add_argument('-dmax', type=float, required=True, help='Maximum DM to consider')
@@ -307,7 +307,7 @@ def main():
     fctr = (ftop + flow) / 2
     outname = f"ddm_plan_f{int(flow)}-{int(ftop)}_dt{dt}_df{df}_dm{int(maxDM)}"
     
-    if args.nsub:
+    if args.nsub is None:
         nsub = int(bw/df)
     else:
         nsub = args.nsub
@@ -479,7 +479,7 @@ def main():
         ax2 = ax1.twinx()
         ax2.plot(dms[1:], ddms[1:])
         ax2.set_yscale('log')
-        ax2.set_ylabel('$\Delta$ DM (pc cm$^{-3}$)', color ='blue')
+        ax2.set_ylabel(r'$\Delta$ DM (pc cm$^{-3}$)', color ='blue')
         ax2.tick_params(axis='y', labelcolor='blue')
         plt.xlim(dms[0], dms[-1])
         plt.grid(True, ls='--', alpha=0.5)

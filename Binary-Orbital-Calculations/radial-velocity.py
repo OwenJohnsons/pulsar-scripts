@@ -41,7 +41,7 @@ import numpy as np
 from matplotlib import cbook
 from matplotlib import pyplot as plt
 
-fig, ax = plt.subplots(dpi = 200, figsize=(4,6))
+fig, ax = plt.subplots(dpi = 200, figsize=(6,5))
 
 # make data
 
@@ -49,25 +49,27 @@ ax.plot(phases, fit_func(phases, *popt), c='#0569b9', lw=1, label='Keplerian Fit
 ax.scatter(phase, rot_vel, s=1, c='k', label = 'Strader et al. 2014')
 
 # inset axes....
-x1, x2, y1, y2 = 0.5, 0.51, 0, 50  # subregion of the original image
+x1, x2, y1, y2 = 0.5, 0.56, -10, 0  # subregion of the original image
 sizes = 0.3
 axins = ax.inset_axes(
-    [0.05, 0.1, 0.2, sizes],
+    [0.07, 0.1, 0.2, sizes],
     xlim=(x1, x2), ylim=(y1, y2), xticklabels=[], yticklabels=[])
 axins.plot(phases, fit_func(phases, *popt), c='#0569b9', lw=1, label='Keplerian Fit')
+# axins.scatter(phase, rot_vel, s=1, c='k', label = 'Strader et al. 2014')
 ax.indicate_inset_zoom(axins, edgecolor="black")
 
-x1, x2, y1, y2 = 1.2, 1.21, 200, 250  # subregion of the original image
+x1, x2, y1, y2 = 1.22, 1.26, 240, 250  # subregion of the original image
 axins = ax.inset_axes(
-    [0.7, 0.1, 0.2, sizes],
+    [0.7, 0.2, 0.2, sizes],
     xlim=(x1, x2), ylim=(y1, y2), xticklabels=[], yticklabels=[])
 axins.plot(phases, fit_func(phases, *popt), c='#0569b9', lw=1, label='Keplerian Fit')
-axins.scatter(phase, rot_vel, s=1, c='k', label = 'Strader et al. 2014')
+# axins.scatter(phase, rot_vel, s=1, c='k', label = 'Strader et al. 2014')
 ax.indicate_inset_zoom(axins, edgecolor="black")
 
 plt.xlabel('Phase $(\phi)$')
 plt.ylabel('Radial Velocity [km/s]')
 plt.legend(loc = 'lower right', fontsize = 8, frameon=True)
+plt.savefig('output/radial-velocity-inset.pdfu', bbox_inches='tight')
 
 plt.show()
 
